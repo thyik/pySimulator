@@ -12,13 +12,21 @@ class IniFile:
                    }
 
     def __init__(self, file_path):
+        """ctor.
+
+        Keyword arguments:
+        file_path -- ini file location
+        """
         self._file_path = file_path
 
     # string type
     def get_string(self, section: str, key: str, default: str = '') -> str:
-        """
+        """return string value.
 
-        :rtype: str
+        Keyword arguments:
+        section -- section name
+        key -- key name
+        default -- default value to return if section / key not found (default '')
         """
         # refresh parser content
         self._parser.read(self._file_path)
@@ -26,6 +34,13 @@ class IniFile:
         return self._parser[section][key]
 
     def write_string(self, section: str, key: str, value: str):
+        """write string value.
+
+        Keyword arguments:
+        section -- section name
+        key -- key name
+        value -- value to write
+        """
         # refresh parser content
         self._parser.read(self._file_path)
         # update key
@@ -36,6 +51,13 @@ class IniFile:
 
     # number type
     def get_int(self, section: str, key: str, default=0) -> int:
+        """return integer value.
+
+        Keyword arguments:
+        section -- section name
+        key -- key name
+        default -- default value to return if section / key not found (default 0)
+        """
         val = self.get_string(section, key)
         if val.isnumeric():
             return int(val)
@@ -43,19 +65,47 @@ class IniFile:
         return int(default)
 
     def write_int(self, section: str, key: str, value: int):
+        """write integer value.
+
+        Keyword arguments:
+        section -- section name
+        key -- key name
+        value -- value to write
+        """
         string_val = f'{value}'
         self.write_string(section, key, string_val)
 
     # double type
     def get_float(self, section: str, key: str, default=0.0) -> float:
+        """return float value.
+
+        Keyword arguments:
+        section -- section name
+        key -- key name
+        default -- default value to return if section / key not found (default 0.0)
+        """
         return float(self.get_string(section, key))
 
     def write_float(self, section, key, value):
+        """write float value.
+
+        Keyword arguments:
+        section -- section name
+        key -- key name
+        value -- value to write
+        """
         string_val = f'{value}'
         self.write_string(section, key, string_val)
 
     # Boolean type    
-    def get_bool(self, section: str, key: str, default=True) -> bool:
+    def get_bool(self, section: str, key: str, default=False) -> bool:
+        """return bool value.
+
+        Keyword arguments:
+        section -- section name
+        key -- key name
+        default -- default value to return if section / key not found (default False)
+        """
         val = self.get_string(section, key)
 
         if val in self._valid_bool:
@@ -64,6 +114,13 @@ class IniFile:
         return default
 
     def write_bool(self, section: str, key: str, value: bool):
+        """write bool value.
+
+        Keyword arguments:
+        section -- section name
+        key -- key name
+        value -- value to write
+        """
         pass
 
     # test code
