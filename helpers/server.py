@@ -48,7 +48,16 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
             if bytes(in_reply, 'utf-8') == self.data:
                 reply = parser.get_string('Setting', f'Row{x + 1}out', 'R')
+                crlf = parser.get_string('Setting', f'Row{x + 1}eol', 'CR')
+                if crlf == 'CR':
+                    reply += '\r'
+                elif crlf == 'CRLF':
+                    reply += '\r\n'
+                else:
+                    reply += '\r'
                 break
+
+        crlf = parser.get_bool('Setting', 'CRLF', False)
 
         return reply
 
