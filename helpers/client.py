@@ -14,6 +14,7 @@ try:
 
     # Receive data from the server and shut down
     received = str(sock.recv(1024), "utf-8")
+
 finally:
     sock.close()
 

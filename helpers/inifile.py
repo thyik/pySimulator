@@ -2,22 +2,34 @@ import configparser as cfg
 
 
 class IniFile:
-    _parser = cfg.ConfigParser()
-    _valid_bool = {'1': bool(1),
-                   'true': bool(1),
-                   'yes': bool(1),
-                   '0': bool(0),
-                   'false': bool(0),
-                   'no': bool(0)
-                   }
 
     def __init__(self, file_path):
-        """ctor.
+        """constructor
 
         Keyword arguments:
         file_path -- ini file location
         """
         self._file_path = file_path
+
+        # setup parser behaviour
+        self._parser = cfg.ConfigParser(
+            delimiters={'='},
+            interpolation=None
+        )
+        self._parser.BOOLEAN_STATES = {
+            '1': True,
+            'true': True,
+            'yes': True,
+            '0': False,
+            'false': False,
+            'no': False
+        }
+        # load file
+        self.refresh()
+
+    def refresh(self):
+        # refresh parser content
+        self._parser.read(self._file_path)
 
     # string type
     def get_string(self, section: str, key: str, default: str = '') -> str:
@@ -28,9 +40,14 @@ class IniFile:
         key -- key name
         default -- default value to return if section / key not found (default '')
         """
-        # refresh parser content
-        self._parser.read(self._file_path)
-        # 
+        # check section exist
+        if not self._parser.has_section(section):
+            return default
+
+        # check key exist
+        if not self._parser.has_option(section, key):
+            return default
+
         return self._parser[section][key]
 
     def write_string(self, section: str, key: str, value: str):
@@ -41,8 +58,6 @@ class IniFile:
         key -- key name
         value -- value to write
         """
-        # refresh parser content
-        self._parser.read(self._file_path)
         # update key
         self._parser[section][key] = value
         # persist to file
@@ -107,9 +122,8 @@ class IniFile:
         default -- default value to return if section / key not found (default False)
         """
         val = self.get_string(section, key)
-
-        if val in self._valid_bool:
-            return self._valid_bool[val]
+        if val in self._parser.BOOLEAN_STATES:
+            return self._parser.BOOLEAN_STATES[val]
 
         return default
 
@@ -135,3 +149,5 @@ if __name__ == "__main__":
     configIni.write_int('Settings', 'Port', 801)
 
     crlf = configIni.get_bool('Settings', 'CRLF', False)
+
+    print(crlf)
