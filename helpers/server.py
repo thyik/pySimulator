@@ -1,6 +1,5 @@
 import socketserver
-from inifile import IniFile
-
+from helpers.inifile import IniFile
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
     """
@@ -10,8 +9,13 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     override the handle() method to implement communication to the
     client.
     """
+    parser = IniFile('../playground/config.ini')
 
     def setup(self):
+        CR = self.parser.get_bool('Setting', 'CR', True)
+        LF = self.parser.get_bool('Setting', 'LF', False)
+        # setup terminating character
+        self.terminator = self.eol('CRLF') if CR & LF else self.eol('CR')
         print('{}:{} connected'.format(*self.client_address))
 
     def handle(self):
@@ -23,9 +27,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 print(self.data)
                 data_str = str(self.data, 'utf-8')
                 # decode individual token cmd
-                for cmd in data_str.split('\r'):
+                for cmd in data_str.split(self.terminator):
                     reply = self.decode_reply(cmd)
-                    for each_reply in reply.split('\r'):
+                    for each_reply in reply.split(self.terminator):
                         print(f"reply:{each_reply}")
                     # just send back the same data, but upper-cased
                     # self.request.sendall(self.data.upper())
@@ -42,27 +46,26 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             Row1out=R
             Row1EOL=CR
         """
-        parser = IniFile('d:/testconfig/config.ini')
 
-        num_reply = parser.get_int('Setting', 'Number Of Reply', 40)
+        num_reply = self.parser.get_int('Setting', 'Number Of Reply', 40)
         reply = 'R\r'  # default 'R'
 
         for x in range(num_reply):
             number = x + 1
-            in_reply = parser.get_string('Setting', f'Row{number}in', '')
+            in_reply = self.parser.get_string('Setting', f'Row{number}in', '')
 
             num_of_chars = cmd.__len__()
             partial_str = in_reply[0:num_of_chars]
             if partial_str == cmd:
             # if bytes(in_reply, 'utf-8') == self.data:
-                crlf = parser.get_string('Setting', f'Row{number}eol', 'CR')
-                check_file = parser.get_bool('Setting', f'row{number}filechk')
+                crlf = self.parser.get_string('Setting', f'Row{number}eol', 'CR')
+                check_file = self.parser.get_bool('Setting', f'row{number}filechk')
                 if check_file:
                     # get reply from .txt
-                    txtfile = parser.get_string('Setting', f'row{number}file')
+                    txtfile = self.parser.get_string('Setting', f'row{number}file')
                     reply = self.txt_reply(txtfile, crlf)
                 else:
-                    reply = parser.get_string('Setting', f'Row{number}out', 'R')
+                    reply = self.parser.get_string('Setting', f'Row{number}out', 'R')
                     reply += self.eol(crlf)
 
                 break
@@ -89,7 +92,12 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         return eol_str
 
 if __name__ == "__main__":
+
+    parser = IniFile('../playground/config.ini')
     HOST, PORT = "localhost", 700
+
+    HOST = parser.get_string('Connection', 'ServerIPAddress', 'localhost')
+    PORT = parser.get_int('Setting', 'ServerPort', 700)
 
     # Create the server, binding to localhost on port 9999
     with socketserver.TCPServer((HOST, PORT), MyTCPHandler) as server:
