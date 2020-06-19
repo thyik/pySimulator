@@ -59,6 +59,7 @@ root = tk.Tk()
 app = Application(master=root)
 app.mainloop()
 
+server.shutdown()
 logging.info("Main    : wait for the thread to finish")
 x.join()
 logging.info("Main    : all done")
