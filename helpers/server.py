@@ -1,5 +1,5 @@
 import socketserver
-from helpers.inifile import IniFile
+from inifile import IniFile
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
     """
@@ -11,6 +11,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     """
     parser = IniFile('../playground/config.ini')
 
+    # override base function of BaseRequestHandler. Called before handle()
     def setup(self):
         CR = self.parser.get_bool('Setting', 'CR', True)
         LF = self.parser.get_bool('Setting', 'LF', False)
@@ -18,6 +19,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         self.terminator = self.eol('CRLF') if CR & LF else self.eol('CR')
         print('{}:{} connected'.format(*self.client_address))
 
+    # override base function
     def handle(self):
         try:
             while True:
@@ -37,9 +39,11 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         except ConnectionAbortedError:
             print("Client {}:{} Connection Abort".format(*self.client_address))
 
+    # override base function
     def finish(self):
         print('{}:{} disconnected'.format(*self.client_address))
 
+    # user function
     def decode_reply(self, cmd: str):
         """
             Row1in=Z
@@ -72,6 +76,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
         return reply
 
+    # user function
     def txt_reply(self, filepath: str, eol: str) -> str:
         reply = ''
         crlf = self.eol(eol)
@@ -82,6 +87,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
         return reply
 
+    # user function
     def eol(self, eol_type: str):
         if eol_type == 'CR':
             eol_str = '\r'
